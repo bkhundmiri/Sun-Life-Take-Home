@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "install-all": "npm install && cd frontend && npm install",
+    "api-test": "cd backend && go test -v",
     "start": "concurrently \"cd backend && go run main.go\" \"cd frontend && npm run dev\""
   },
   "keywords": [],
