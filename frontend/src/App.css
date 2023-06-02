@@ -1,0 +1,46 @@
+#root {
+  margin: 0 auto;
+  text-align: center;
+}
+
+.single-status-container {
+  display: flex;
+  justify-content: space-around;
+  gap: 20px
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-width: 100vw;
+}
+
+.app-header, .app-footer {
+  background-color: #282c34;
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+}
+
+.app-footer {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+}
+
+main {
+  margin: auto;
+}
+
+@media (max-width: 768px) {
+  .single-status-container {
+    flex-direction: column;
+    align-items: center;
+  }
+}

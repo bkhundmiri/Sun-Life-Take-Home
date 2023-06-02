@@ -1,0 +1,16 @@
+.status-container {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 0 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    width: 250px; /* adjust as needed */
+    height: 200px; /* adjust as needed */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.status-container p {
+    text-align: left;
+}

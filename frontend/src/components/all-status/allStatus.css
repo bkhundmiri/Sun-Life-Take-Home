@@ -1,0 +1,19 @@
+.all-status-container {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    width: 70%;
+    margin: 10px auto;
+  }
+  
+  .status-section {
+    margin-top: 10px;
+    border-top: 1px solid #ddd;
+  }
+  
+  .status-elements {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+  }
