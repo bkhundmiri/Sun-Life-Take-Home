@@ -2,9 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -15,12 +15,16 @@ type SiteStatus struct {
 	Date       string `json:"date"`
 }
 
-func checkStatus(url string) (SiteStatus, error) {
+var statuses map[string]SiteStatus
+var statusMutex sync.Mutex
+var urls = []string{"https://www.google.com", "https://www.amazon.com"}
+
+func fetchStatus(url string) (SiteStatus, error) {
 	start := time.Now()
 	resp, err := http.Get(url)
 	if err != nil {
-		log.Printf("Error fetching: %s", url)
-		return SiteStatus{}, fmt.Errorf("Error fetching: %s", url)
+		log.Printf("Error fetching: %s", err)
+		return SiteStatus{}, err
 	}
 	defer resp.Body.Close()
 
@@ -35,8 +39,31 @@ func checkStatus(url string) (SiteStatus, error) {
 	}, nil
 }
 
+func checkAllStatuses() {
+	for {
+		newStatuses := make(map[string]SiteStatus)
+
+		for _, url := range urls {
+			status, err := fetchStatus(url)
+			if err != nil {
+				log.Printf("Error fetching: %s", err)
+				continue
+			}
+			newStatuses[url] = status
+		}
+
+		// Update the shared variable
+		statusMutex.Lock()
+		statuses = newStatuses
+		statusMutex.Unlock()
+
+		// Sleep for 1 minute
+		time.Sleep(1 * time.Minute)
+	}
+}
+
 func amazonStatusHandler(w http.ResponseWriter, r *http.Request) {
-	status, err := checkStatus("https://www.amazon.com")
+	status, err := fetchStatus("https://www.amazon.com")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -45,7 +72,7 @@ func amazonStatusHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func googleStatusHandler(w http.ResponseWriter, r *http.Request) {
-	status, err := checkStatus("https://www.google.com")
+	status, err := fetchStatus("https://www.google.com")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -54,24 +81,19 @@ func googleStatusHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func allStatusHandler(w http.ResponseWriter, r *http.Request) {
-	googleStatus, err1 := checkStatus("https://www.google.com")
-	amazonStatus, err2 := checkStatus("https://www.amazon.com")
-	if err1 != nil || err2 != nil {
-		errMsg := ""
-		if err1 != nil {
-			errMsg += err1.Error()
-		}
-		if err2 != nil {
-			errMsg += " " + err2.Error()
-		}
-		http.Error(w, errMsg, http.StatusInternalServerError)
-		return
+	statusMutex.Lock()
+	defer statusMutex.Unlock()
+
+	var allStatuses []SiteStatus
+	for _, status := range statuses {
+		allStatuses = append(allStatuses, status)
 	}
-	statuses := []SiteStatus{googleStatus, amazonStatus}
-	json.NewEncoder(w).Encode(statuses)
+
+	json.NewEncoder(w).Encode(allStatuses)
 }
 
 func main() {
+	go checkAllStatuses()
 	http.HandleFunc("/v1/amazon-status", amazonStatusHandler)
 	http.HandleFunc("/v1/google-status", googleStatusHandler)
 	http.HandleFunc("/v1/all-status", allStatusHandler)
